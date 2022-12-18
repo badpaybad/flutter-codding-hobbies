@@ -8,7 +8,15 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 /// Create a [AndroidNotificationChannel] for heads up notifications
-late AndroidNotificationChannel channel ;
+late AndroidNotificationChannel channel;
+
+final AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings("appicon");
+
+final InitializationSettings initializationSettings = InitializationSettings(
+  //iOS: initializationSettingsIOS,
+  android: initializationSettingsAndroid,
+);
 
 var isFlutterLocalNotificationsInitialized = false;
 
@@ -25,6 +33,16 @@ Future<void> setupFlutterNotifications() async {
   );
 
   flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveBackgroundNotificationResponse: (msg) async {
+      print("--------------------onDidReceiveBackgroundNotificationResponse");
+    },
+    onDidReceiveNotificationResponse: (msg) async {
+      print("--------------------onDidReceiveNotificationResponse");
+    },
+  );
 
   /// Create an Android Notification Channel.
   ///
@@ -70,7 +88,7 @@ void showFlutterNotification(RemoteMessage message) {
 /// Initialize the [FlutterLocalNotificationsPlugin] package.
 late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
   //await Firebase.initializeApp();
@@ -88,7 +106,7 @@ Future<void> main() async {
 
   await AppContext.instance.initFirebaseApp();
 
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   if (!kIsWeb) {
     await setupFlutterNotifications();

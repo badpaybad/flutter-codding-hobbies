@@ -124,15 +124,18 @@ class AppContext {
 
         print(_firebaseAuth?.currentUser?.displayName);
         // //https://firebase.flutter.dev/docs/messaging/usage/
-        // NotificationSettings settings = await _firebaseMsg!.requestPermission(
-        //   alert: true,
-        //   announcement: true,
-        //   badge: true,
-        //   carPlay: true,
-        //   criticalAlert: true,
-        //   provisional: true,
-        //   sound: true,
-        // );
+        NotificationSettings settings = await _firebaseMsg!.requestPermission(
+          alert: true,
+          announcement: true,
+          badge: true,
+          carPlay: true,
+          criticalAlert: true,
+          provisional: true,
+          sound: true,
+        );
+
+        settings =
+        await FirebaseMessaging.instance.getNotificationSettings();
 
         //print('User granted permission: ${settings.authorizationStatus}');
 
