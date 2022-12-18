@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -6,9 +8,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+//https://firebase.google.com/docs/cloud-messaging/android/first-message
 //https://firebase.google.com/docs/flutter/setup?platform=ios
 //https://firebase.google.com/docs/flutter/setup?platform=ios#available-plugins
+
+//https://github.com/firebase/flutterfire/blob/master/packages/firebase_messaging/firebase_messaging/example/lib/main.dart
+
 
 class AppContext {
   AppContext._privateConstructor();
@@ -47,6 +52,34 @@ class AppContext {
             appId: "realtimedbtest-d8c6b",
             messagingSenderId: "787425357847",
             projectId: "realtimedbtest-d8c6b"));
+
+
+
+  }
+
+  Future<void> forgroundNotification(BuildContext context) async{
+
+    //Foreground messages notification (FCM)
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      }
+    });
+
+    //
+    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    //   print('A new onMessageOpenedApp event was published!');
+    //   Navigator.pushNamed(
+    //     context,
+    //     '/message',
+    //     arguments: MessageArguments(message, true),
+    //   );
+    // });
+
   }
 
   Future<void> SignInSilently() async {
@@ -146,17 +179,17 @@ class AppContext {
         }).onError((err) {
           // Error getting token.
         });
-
-        //Foreground messages notification (FCM)
-
-        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-          print('Got a message whilst in the foreground!');
-          print('Message data: ${message.data}');
-
-          if (message.notification != null) {
-            print('Message also contained a notification: ${message.notification}');
-          }
-        });
+        //
+        // //Foreground messages notification (FCM)
+        //
+        // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        //   print('Got a message whilst in the foreground!');
+        //   print('Message data: ${message.data}');
+        //
+        //   if (message.notification != null) {
+        //     print('Message also contained a notification: ${message.notification}');
+        //   }
+        // });
 
 
       } else {
@@ -226,4 +259,17 @@ class LogedInfo {
   LogedInfo(GoogleSignInAccount? googleAcc, Map<String, dynamic>? info)
       : GoogleAcc = googleAcc,
         AccInfo = info {}
+}
+
+
+/// Message route arguments.
+class MessageArguments {
+  /// The RemoteMessage
+  final RemoteMessage message;
+
+  /// Whether this message caused the application to open.
+  final bool openedApplication;
+
+  // ignore: public_member_api_docs
+  MessageArguments(this.message, this.openedApplication);
 }

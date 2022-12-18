@@ -224,6 +224,12 @@
       "languageVersion": "2.17"
     },
     {
+      "name": "flutter_timezone",
+      "rootUri": "file:///home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_timezone-1.0.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "flutter_web_plugins",
       "rootUri": "file:///home/dunp/snap/flutter/common/flutter/packages/flutter_web_plugins",
       "packageUri": "lib/",
@@ -482,7 +488,7 @@
       "languageVersion": "2.18"
     }
   ],
-  "generated": "2022-12-18T05:57:19.569250Z",
+  "generated": "2022-12-18T10:36:39.129360Z",
   "generator": "pub",
   "generatorVersion": "2.18.5"
 }

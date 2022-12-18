@@ -9,6 +9,7 @@ firebase_database_web=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/p
 firebase_messaging=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_messaging-14.1.4/
 firebase_messaging_web=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/firebase_messaging_web-3.2.9/
 flutter_local_notifications=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_local_notifications-12.0.4/
+flutter_timezone=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/flutter_timezone-1.0.4/
 google_sign_in=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/google_sign_in-5.4.2/
 google_sign_in_android=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/google_sign_in_android-6.1.4/
 google_sign_in_ios=/home/dunp/snap/flutter/common/flutter/.pub-cache/hosted/pub.dartlang.org/google_sign_in_ios-5.5.1/

@@ -44,6 +44,7 @@ dependencies:
   firebase_database:
   firebase_auth:
   flutter_local_notifications:
+  flutter_timezone:
 
 dev_dependencies:
   flutter_test:

@@ -11,6 +11,7 @@ import 'package:firebase_auth_web/firebase_auth_web.dart';
 import 'package:firebase_core_web/firebase_core_web.dart';
 import 'package:firebase_database_web/firebase_database_web.dart';
 import 'package:firebase_messaging_web/firebase_messaging_web.dart';
+import 'package:flutter_timezone/flutter_timezone_web.dart';
 import 'package:google_sign_in_web/google_sign_in_web.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
@@ -21,6 +22,7 @@ void registerPlugins([final Registrar? pluginRegistrar]) {
   FirebaseCoreWeb.registerWith(registrar);
   FirebaseDatabaseWeb.registerWith(registrar);
   FirebaseMessagingWeb.registerWith(registrar);
+  FlutterTimezonePlugin.registerWith(registrar);
   GoogleSignInPlugin.registerWith(registrar);
   registrar.registerMessageHandler();
 }
