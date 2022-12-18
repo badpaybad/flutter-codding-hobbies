@@ -43,6 +43,7 @@ dependencies:
   firebase_messaging:
   firebase_database:
   firebase_auth:
+  flutter_local_notifications:
 
 dev_dependencies:
   flutter_test:

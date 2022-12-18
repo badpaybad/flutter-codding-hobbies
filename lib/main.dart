@@ -1,7 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_codding_hobbies/AppContext.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  //await Firebase.initializeApp();
+  AppContext.instance.initFirebaseApp();
+
+  print("Handling a background message: ${message.messageId}");
+}
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   runApp(const MyApp());
 }
 
@@ -25,7 +39,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Codding hobbies'),
+      home: const MyHomePage(title: 'Codding hobbies - Hello world, welcome to my app'),
     );
   }
 }

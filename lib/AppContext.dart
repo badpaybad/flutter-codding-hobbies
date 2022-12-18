@@ -1,9 +1,9 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -37,6 +37,18 @@ class AppContext {
   FirebaseAuth? _firebaseAuth;
   String? _fcmToken;
 
+  Future<void> initFirebaseApp() async{
+    if(_firebaseApp!=null) return;
+
+    _firebaseApp = await Firebase.initializeApp(
+        name: "DEFAULT",
+        options: FirebaseOptions(
+            apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
+            appId: "realtimedbtest-d8c6b",
+            messagingSenderId: "787425357847",
+            projectId: "realtimedbtest-d8c6b"));
+  }
+
   Future<void> SignInSilently() async {
     print("-------SignInSilently");
 
@@ -48,13 +60,15 @@ class AppContext {
         var info = await _handleGetContact(CurrentUser!);
         logedInfo = LogedInfo(CurrentUser!, info);
 
-        _firebaseApp = await Firebase.initializeApp(
-            name: "DEFAULT",
-            options: FirebaseOptions(
-                apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
-                appId: "realtimedbtest-d8c6b",
-                messagingSenderId: "787425357847",
-                projectId: "realtimedbtest-d8c6b"));
+        // _firebaseApp = await Firebase.initializeApp(
+        //     name: "DEFAULT",
+        //     options: FirebaseOptions(
+        //         apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
+        //         appId: "realtimedbtest-d8c6b",
+        //         messagingSenderId: "787425357847",
+        //         projectId: "realtimedbtest-d8c6b"));
+
+        await initFirebaseApp();
 
         _firebaseAuth= FirebaseAuth.instanceFor(app: _firebaseApp!,
         persistence: Persistence.LOCAL );
@@ -74,7 +88,20 @@ class AppContext {
         if(_firebaseAuth?.currentUser==null){
           await _firebaseAuth?.currentUser?.reload();
         }
+
         print(_firebaseAuth?.currentUser?.displayName);
+        // //https://firebase.flutter.dev/docs/messaging/usage/
+        // NotificationSettings settings = await _firebaseMsg!.requestPermission(
+        //   alert: true,
+        //   announcement: true,
+        //   badge: true,
+        //   carPlay: true,
+        //   criticalAlert: true,
+        //   provisional: true,
+        //   sound: true,
+        // );
+
+        //print('User granted permission: ${settings.authorizationStatus}');
 
         _firebaseDb = FirebaseDatabase.instanceFor(
             app: _firebaseApp!,
@@ -119,6 +146,19 @@ class AppContext {
         }).onError((err) {
           // Error getting token.
         });
+
+        //Foreground messages notification (FCM)
+
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          print('Got a message whilst in the foreground!');
+          print('Message data: ${message.data}');
+
+          if (message.notification != null) {
+            print('Message also contained a notification: ${message.notification}');
+          }
+        });
+
+
       } else {
         logedInfo = null;
         print("-----fail loged in to google");
