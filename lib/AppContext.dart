@@ -42,6 +42,8 @@ class AppContext {
   FirebaseAuth? _firebaseAuth;
   String? _fcmToken;
 
+  String? FcmToken()=> _fcmToken;
+
   Future<void> initFirebaseApp() async{
     if(_firebaseApp!=null) return;
 
@@ -123,19 +125,19 @@ class AppContext {
         }
 
         print(_firebaseAuth?.currentUser?.displayName);
-        // //https://firebase.flutter.dev/docs/messaging/usage/
-        NotificationSettings settings = await _firebaseMsg!.requestPermission(
-          alert: true,
-          announcement: true,
-          badge: true,
-          carPlay: true,
-          criticalAlert: true,
-          provisional: true,
-          sound: true,
-        );
-
-        settings =
-        await FirebaseMessaging.instance.getNotificationSettings();
+        // // //https://firebase.flutter.dev/docs/messaging/usage/
+        // NotificationSettings settings = await _firebaseMsg!.requestPermission(
+        //   alert: true,
+        //   announcement: true,
+        //   badge: true,
+        //   carPlay: true,
+        //   criticalAlert: true,
+        //   provisional: true,
+        //   sound: true,
+        // );
+        //
+        // settings =
+        // await FirebaseMessaging.instance.getNotificationSettings();
 
         //print('User granted permission: ${settings.authorizationStatus}');
 

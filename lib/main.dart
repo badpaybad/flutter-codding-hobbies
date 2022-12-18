@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -11,7 +12,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 late AndroidNotificationChannel channel;
 
 final AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings("appicon");
+    AndroidInitializationSettings("@mipmap/jun_sau_avatar");
 
 final InitializationSettings initializationSettings = InitializationSettings(
   //iOS: initializationSettingsIOS,
@@ -21,9 +22,7 @@ final InitializationSettings initializationSettings = InitializationSettings(
 var isFlutterLocalNotificationsInitialized = false;
 
 Future<void> setupFlutterNotifications() async {
-  if (isFlutterLocalNotificationsInitialized) {
-    return;
-  }
+  if (isFlutterLocalNotificationsInitialized) {    return;  }
   channel = const AndroidNotificationChannel(
     'high_importance_channel', // id
     'High Importance Notifications', // title
@@ -31,9 +30,7 @@ Future<void> setupFlutterNotifications() async {
         'This channel is used for important notifications.', // description
     importance: Importance.high,
   );
-
   flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
   flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
     onDidReceiveBackgroundNotificationResponse: (msg) async {
@@ -43,7 +40,6 @@ Future<void> setupFlutterNotifications() async {
       print("--------------------onDidReceiveNotificationResponse");
     },
   );
-
   /// Create an Android Notification Channel.
   ///
   /// We use this channel in the `AndroidManifest.xml` file to override the
@@ -52,7 +48,6 @@ Future<void> setupFlutterNotifications() async {
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
-
   /// Update the iOS foreground notification presentation options to allow
   /// heads up notifications.
   await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
@@ -66,11 +61,11 @@ Future<void> setupFlutterNotifications() async {
 void showFlutterNotification(RemoteMessage message) {
   RemoteNotification? notification = message.notification;
   AndroidNotification? android = message.notification?.android;
-  if (notification != null && android != null && !kIsWeb) {
+  if (!kIsWeb) {
     flutterLocalNotificationsPlugin.show(
       notification.hashCode,
-      notification.title,
-      notification.body,
+      jsonEncode(message.data),
+      jsonEncode(message.data),
       NotificationDetails(
         android: AndroidNotificationDetails(
           channel.id,
@@ -78,7 +73,8 @@ void showFlutterNotification(RemoteMessage message) {
           channelDescription: channel.description,
           // TODO add a proper drawable resource to android, for now using
           //      one that already exists in example app.
-          icon: 'launch_background',
+          icon: '@drawable/jun_sau_avatar',
+          largeIcon: const DrawableResourceAndroidBitmap('@drawable/jun_sau_avatar'),
         ),
       ),
     );
@@ -98,6 +94,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   print("Handling a background message: ${message.messageId}");
 
+  print(jsonEncode( message.data));
+
   showFlutterNotification(message);
 }
 
@@ -105,6 +103,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await AppContext.instance.initFirebaseApp();
+
+
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -122,7 +122,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter boilerplate',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -136,7 +136,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(
-          title: 'Codding hobbies - Hello world, welcome to my app'),
+          title: 'Flutter boilerplate'),
     );
   }
 }
@@ -164,7 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    AppContext.instance.forgroundNotification(context);
+    //AppContext.instance.forgroundNotification(context);
 
     AppContext.instance.SignInSilently().then((v) {
       if (mounted) setState(() {});
