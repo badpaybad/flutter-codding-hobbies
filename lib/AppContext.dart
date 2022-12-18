@@ -8,12 +8,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 //https://firebase.google.com/docs/cloud-messaging/android/first-message
 //https://firebase.google.com/docs/flutter/setup?platform=ios
 //https://firebase.google.com/docs/flutter/setup?platform=ios#available-plugins
 
 //https://github.com/firebase/flutterfire/blob/master/packages/firebase_messaging/firebase_messaging/example/lib/main.dart
-
 
 class AppContext {
   AppContext._privateConstructor();
@@ -40,12 +40,11 @@ class AppContext {
   FirebaseDatabase? _firebaseDb;
   FirebaseMessaging? _firebaseMsg;
   FirebaseAuth? _firebaseAuth;
-  String? _fcmToken;
+  String? FcmToken;
 
-  String? FcmToken()=> _fcmToken;
 
-  Future<void> initFirebaseApp() async{
-    if(_firebaseApp!=null) return;
+  Future<void> initFirebaseApp() async {
+    if (_firebaseApp != null) return;
 
     _firebaseApp = await Firebase.initializeApp(
         name: "DEFAULT",
@@ -54,16 +53,20 @@ class AppContext {
             appId: "realtimedbtest-d8c6b",
             messagingSenderId: "787425357847",
             projectId: "realtimedbtest-d8c6b"));
-
-
-
   }
 
-  Future<void> forgroundNotification(BuildContext context) async{
+  bool _isInit_forgroundNotification=false;
 
+  Future<void> forgroundNotification(BuildContext context,
+  {Future<void> Function(RemoteMessage)? showNoti }) async {
+    if(_isInit_forgroundNotification==true) return;
+    _isInit_forgroundNotification=true;
     //Foreground messages notification (FCM)
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if(showNoti!=null){
+        showNoti(message);
+      }
       print('Got a message whilst in the foreground!');
       print('Message data: ${message.data}');
 
@@ -81,12 +84,12 @@ class AppContext {
     //     arguments: MessageArguments(message, true),
     //   );
     // });
-
   }
 
-  Future<void> SignInSilently() async {
-    print("-------SignInSilently");
+  GlobalKey<NavigatorState> navigatorKey = GlobalKey(debugLabel: "Main Navigator");
 
+  Future<void> SignInSilently() async {
+    
     _googleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount? account) async {
       CurrentUser = account;
@@ -105,11 +108,32 @@ class AppContext {
 
         await initFirebaseApp();
 
-        _firebaseAuth= FirebaseAuth.instanceFor(app: _firebaseApp!,
-        persistence: Persistence.LOCAL );
+        // // //https://firebase.flutter.dev/docs/messaging/usage/
+        _firebaseMsg = FirebaseMessaging.instance;
+
+        FcmToken = await FirebaseMessaging.instance.getToken();
+        NotificationSettings settings = await _firebaseMsg!.requestPermission(
+          alert: true,
+          announcement: true,
+          badge: true,
+          carPlay: true,
+          criticalAlert: true,
+          provisional: true,
+          sound: true,
+        );
+
+        settings =
+        await FirebaseMessaging.instance.getNotificationSettings();
+
+        print('User granted permission: ${settings.authorizationStatus}');
+
+
+        _firebaseAuth = FirebaseAuth.instanceFor(
+            app: _firebaseApp!, persistence: Persistence.LOCAL);
 
         // Obtain the auth details from the request
-        final GoogleSignInAuthentication? googleAuth = await account?.authentication;
+        final GoogleSignInAuthentication? googleAuth =
+            await account?.authentication;
 
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth?.accessToken,
@@ -120,35 +144,17 @@ class AppContext {
         await _firebaseAuth!.signInWithCredential(credential);
 
         print("_firebaseAuth");
-        if(_firebaseAuth?.currentUser==null){
+        if (_firebaseAuth?.currentUser == null) {
           await _firebaseAuth?.currentUser?.reload();
         }
 
         print(_firebaseAuth?.currentUser?.displayName);
-        // // //https://firebase.flutter.dev/docs/messaging/usage/
-        // NotificationSettings settings = await _firebaseMsg!.requestPermission(
-        //   alert: true,
-        //   announcement: true,
-        //   badge: true,
-        //   carPlay: true,
-        //   criticalAlert: true,
-        //   provisional: true,
-        //   sound: true,
-        // );
-        //
-        // settings =
-        // await FirebaseMessaging.instance.getNotificationSettings();
-
-        //print('User granted permission: ${settings.authorizationStatus}');
 
         _firebaseDb = FirebaseDatabase.instanceFor(
             app: _firebaseApp!,
             databaseURL:
                 "https://realtimedbtest-d8c6b-default-rtdb.asia-southeast1.firebasedatabase.app");
 
-        _firebaseMsg = FirebaseMessaging.instance;
-
-        _fcmToken = await FirebaseMessaging.instance.getToken();
 
         DatabaseReference dbTestRef = _firebaseDb!.ref("fluttertest");
 
@@ -163,8 +169,7 @@ class AppContext {
     ".write":"auth.uid != null"
   }
 }*/
-        await dbTestRef
-            .set({"name": "du ${DateTime.now().toIso8601String()}"});
+        await dbTestRef.set({"name": "du ${DateTime.now().toIso8601String()}"});
 
         Timer.periodic(Duration(seconds: 1), (timer) async {
           // await dbTestRef
@@ -172,39 +177,25 @@ class AppContext {
         });
 
         print("_fcmToken");
-        print(_fcmToken);
+        print(FcmToken);
 
         FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
           // TODO: If necessary send token to application server.
-          _fcmToken = await FirebaseMessaging.instance.getToken();
+          FcmToken = await FirebaseMessaging.instance.getToken();
           print("_fcmToken refresh");
-          print(_fcmToken);
+          print(FcmToken);
           // Note: This callback is fired at each app startup and whenever a new
           // token is generated.
         }).onError((err) {
           // Error getting token.
         });
-        //
-        // //Foreground messages notification (FCM)
-        //
-        // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        //   print('Got a message whilst in the foreground!');
-        //   print('Message data: ${message.data}');
-        //
-        //   if (message.notification != null) {
-        //     print('Message also contained a notification: ${message.notification}');
-        //   }
-        // });
-
 
       } else {
         logedInfo = null;
-        print("-----fail loged in to google");
       }
     });
     await _googleSignIn.signInSilently();
 
-    print("-------SignInSilently....");
   }
 
   Future<Map<String, dynamic>> _handleGetContact(
@@ -254,6 +245,10 @@ class AppContext {
       print(error);
     }
   }
+
+
+  Map<String,WidgetBuilder> routesForNavigator=Map<String,WidgetBuilder>();
+
 }
 
 class LogedInfo {
@@ -265,7 +260,6 @@ class LogedInfo {
       : GoogleAcc = googleAcc,
         AccInfo = info {}
 }
-
 
 /// Message route arguments.
 class MessageArguments {

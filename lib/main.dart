@@ -6,13 +6,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_codding_hobbies/AppContext.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_codding_hobbies/Permissions.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  //await Firebase.initializeApp();
+
+  await AppContext.instance.initFirebaseApp();
+  await setupFlutterNotifications();
+
+  print("Handling a background message: ${message.messageId}");
+
+  print(jsonEncode(message.data));
+
+  showFlutterNotification(message);
+}
+
+Future<void> _onTab_onTouch_onSelect_to_notification_showed(NotificationResponse msg) async{
+
+  if (AppContext.instance.routesForNavigator.keys.length > 0) {
+    var routeName = AppContext.instance.routesForNavigator.keys.first;
+    AppContext.instance.navigatorKey.currentState?.pushNamed(routeName,
+    arguments:  {"test":"AppContext.instance.navigatorKey.currentState?.pushNamed(routeName"}
+    );
+  }
+}
+
 
 /// Create a [AndroidNotificationChannel] for heads up notifications
 late AndroidNotificationChannel channel;
 
 final AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings("@mipmap/jun_sau_avatar");
+    AndroidInitializationSettings("@drawable/jun_sau_avatar");
 
 final InitializationSettings initializationSettings = InitializationSettings(
   //iOS: initializationSettingsIOS,
@@ -22,7 +50,9 @@ final InitializationSettings initializationSettings = InitializationSettings(
 var isFlutterLocalNotificationsInitialized = false;
 
 Future<void> setupFlutterNotifications() async {
-  if (isFlutterLocalNotificationsInitialized) {    return;  }
+  if (isFlutterLocalNotificationsInitialized) {
+    return;
+  }
   channel = const AndroidNotificationChannel(
     'high_importance_channel', // id
     'High Importance Notifications', // title
@@ -33,13 +63,10 @@ Future<void> setupFlutterNotifications() async {
   flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
-    onDidReceiveBackgroundNotificationResponse: (msg) async {
-      print("--------------------onDidReceiveBackgroundNotificationResponse");
-    },
-    onDidReceiveNotificationResponse: (msg) async {
-      print("--------------------onDidReceiveNotificationResponse");
-    },
+    onDidReceiveBackgroundNotificationResponse: _onTab_onTouch_onSelect_to_notification_showed,
+    onDidReceiveNotificationResponse: _onTab_onTouch_onSelect_to_notification_showed,
   );
+
   /// Create an Android Notification Channel.
   ///
   /// We use this channel in the `AndroidManifest.xml` file to override the
@@ -48,6 +75,7 @@ Future<void> setupFlutterNotifications() async {
       .resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
+
   /// Update the iOS foreground notification presentation options to allow
   /// heads up notifications.
   await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
@@ -74,7 +102,8 @@ void showFlutterNotification(RemoteMessage message) {
           // TODO add a proper drawable resource to android, for now using
           //      one that already exists in example app.
           icon: '@drawable/jun_sau_avatar',
-          largeIcon: const DrawableResourceAndroidBitmap('@drawable/jun_sau_avatar'),
+          largeIcon:
+              const DrawableResourceAndroidBitmap('@drawable/jun_sau_avatar'),
         ),
       ),
     );
@@ -84,29 +113,14 @@ void showFlutterNotification(RemoteMessage message) {
 /// Initialize the [FlutterLocalNotificationsPlugin] package.
 late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  //await Firebase.initializeApp();
-
-  await AppContext.instance.initFirebaseApp();
-  await setupFlutterNotifications();
-
-  print("Handling a background message: ${message.messageId}");
-
-  print(jsonEncode( message.data));
-
-  showFlutterNotification(message);
-}
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await AppContext.instance.initFirebaseApp();
-
-
-
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  AppContext.instance.routesForNavigator.addAll({
+    "Permissions": (BuildContext ctx)=> Permissions(),
+  });
 
   if (!kIsWeb) {
     await setupFlutterNotifications();
@@ -115,43 +129,29 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
+
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
+      navigatorKey: AppContext.instance.navigatorKey,
+      routes: AppContext.instance.routesForNavigator,
       title: 'Flutter boilerplate',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(
-          title: 'Flutter boilerplate'),
+      home: const MyHomePage(title: 'Flutter boilerplate'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -160,11 +160,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String? _lastMsg = "";
+
   @override
   void initState() {
     super.initState();
 
-    //AppContext.instance.forgroundNotification(context);
+    AppContext.instance.forgroundNotification(context, showNoti: (msg) async {
+      //showFlutterNotification(msg);
+      _lastMsg = jsonEncode(msg.data);
+      if (mounted) setState(() {});
+    });
 
     AppContext.instance.SignInSilently().then((v) {
       if (mounted) setState(() {});
@@ -183,17 +189,9 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Info: ${AppContext.instance.CurrentUser?.displayName}',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
+      body: SafeArea(
+        child: _build(),
+      ) ,
       floatingActionButton: AppContext.instance.CurrentUser == null
           ? FloatingActionButton(
               tooltip: 'Login',
@@ -212,6 +210,25 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: const Icon(Icons.logout),
             ),
+    );
+  }
+
+  Widget _build(){
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Info: ${AppContext.instance.CurrentUser?.displayName}',
+            style: Theme.of(context).textTheme.headline4,
+          ),
+          ElevatedButton(onPressed: ()async{
+            AppContext.instance.navigatorKey.currentState?.pushNamed("Permissions");
+          }, child: Text("Show permissions"),),
+          Text("Notification received: $_lastMsg"),
+          SelectableText("${AppContext.instance.FcmToken}"),
+        ],
+      ),
     );
   }
 }
