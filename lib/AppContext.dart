@@ -67,7 +67,8 @@ class AppContext {
           idToken: googleAuth?.idToken,
         );
 
-        (await _firebaseAuth!.signInWithCredential(credential)).user;
+        //to access other firebase s
+        await _firebaseAuth!.signInWithCredential(credential);
 
         print("_firebaseAuth");
         if(_firebaseAuth?.currentUser==null){

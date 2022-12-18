@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "787425357847",
+    "firebase_url": "https://realtimedbtest-d8c6b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "realtimedbtest-d8c6b",
+    "storage_bucket": "realtimedbtest-d8c6b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:787425357847:android:a61433ad7d236847a92c52",
+        "android_client_info": {
+          "package_name": "nguyenphandu.online.flutter_codding_hobbies"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "787425357847-cerdtolh0ios86lshucsg56gf0g2p24b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "nguyenphandu.online.flutter_codding_hobbies",
+            "certificate_hash": "a2f33abf588208661bc2c1a8b529477b45e03d62"
+          }
+        },
+        {
+          "client_id": "787425357847-63ronlv3881akfkp4k6r8vm4d4alnl34.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "787425357847-63ronlv3881akfkp4k6r8vm4d4alnl34.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
