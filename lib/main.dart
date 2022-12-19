@@ -15,10 +15,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // make sure you call `initializeApp` before using other Firebase services.
   //await Firebase.initializeApp();
 
-  await AppContext.instance.initFirebaseApp();
-  await NotificationHelper.instance.setupNotifications(_do_when_use_touch_tab_into_notification_showed);
-
   print("Handling a background message: ${message.messageId}");
+  await AppContext.instance.initFirebaseApp();
+  print("---- Handling a background message: AppContext.instance.initFirebaseApp()");
+  await NotificationHelper.instance.setupNotifications(_do_when_use_touch_tab_into_notification_showed);
+  print("---- Handling a background message: _do_when_use_touch_tab_into_notification_showed");
 
   print(jsonEncode(message.data));
 

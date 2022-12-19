@@ -78,9 +78,9 @@ class NotificationHelper {
 
     print("Token device id: $token");
 
-    FirebaseMessaging.instance.onTokenRefresh.listen((fcmTokenNew) async {
+    FirebaseMessaging.instance.onTokenRefresh?.listen((fcmTokenNew) async {
       // TODO: If necessary send token to application server.
-      fcmToken = await FirebaseMessaging.instance.getToken();
+      //fcmToken = await FirebaseMessaging.instance.getToken();
       print("_fcmToken refresh");
       print(fcmTokenNew);
       // Note: This callback is fired at each app startup and whenever a new
@@ -88,6 +88,21 @@ class NotificationHelper {
     }).onError((err) {
       // Error getting token.
     });
+
+    // NotificationSettings settings = await  FirebaseMessaging.instance.requestPermission(
+    //   alert: true,
+    //   announcement: true,
+    //   badge: true,
+    //   carPlay: true,
+    //   criticalAlert: true,
+    //   provisional: true,
+    //   sound: true,
+    // );
+    //
+    // var recheckSettings = await FirebaseMessaging.instance.getNotificationSettings();
+    //
+    // print("---User granted permission:");
+    // print('${recheckSettings?.authorizationStatus??""}');
 
     isFlutterLocalNotificationsInitialized = true;
   }
@@ -123,19 +138,7 @@ class NotificationHelper {
 
     fcmToken = await FirebaseMessaging.instance.getToken();
 
-    return fcmToken;
-    // NotificationSettings settings = await  FirebaseMessaging.instance!.requestPermission(
-    //   alert: true,
-    //   announcement: true,
-    //   badge: true,
-    //   carPlay: true,
-    //   criticalAlert: true,
-    //   provisional: true,
-    //   sound: true,
-    // );
-    //
-    // settings = await FirebaseMessaging.instance.getNotificationSettings();
-    //
-    // print('User granted permission: ${settings.authorizationStatus}');
+    return fcmToken??"";
+
   }
 }
