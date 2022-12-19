@@ -90,7 +90,7 @@ class NotificationHelper {
     _is_setupNotifications = true;
 
     _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    _flutterLocalNotificationsPlugin!.initialize(
+    await _flutterLocalNotificationsPlugin!.initialize(
       initializationSettings,
       onDidReceiveBackgroundNotificationResponse:
       doWhenUseTouchTabIntoNotificationShowed,
