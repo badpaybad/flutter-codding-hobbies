@@ -106,7 +106,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
     });
 
-
     AppContext.instance.SignInSilently().then((v) {
       if (mounted) setState(() {});
     });
@@ -120,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: SafeArea(
-        child: _build(),
+        child:AppContext.instance.CurrentUser == null?Text("Have to login first, click float button bellow"): _build(),
       ),
       floatingActionButton: AppContext.instance.CurrentUser == null
           ? FloatingActionButton(

@@ -85,6 +85,9 @@ class AppContext {
           idToken: googleAuth?.idToken,
         );
 
+        //todo: if you dont want use google login, use your server, you need custom token from server use firebase admin to generate
+        //_firebaseAuth!.signInWithCustomToken(token_custom);
+
         //to access other firebase s
         await _firebaseAuth!.signInWithCredential(credential);
 
