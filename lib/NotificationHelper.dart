@@ -17,12 +17,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await AppContext.instance.initFirebaseApp();
   print(
       "---- Handling a background message: AppContext.instance.initFirebaseApp()");
-  await NotificationHelper.instance
-      ._setupNotifications(_do_when_use_touch_tab_into_notification_showed);
-  print(
-      "---- Handling a background message: _do_when_use_touch_tab_into_notification_showed");
 
   print(jsonEncode(message.data));
+  print(
+      "---- Handling a background message: _do_when_use_touch_tab_into_notification_showed");
 
   NotificationHelper.instance.showNotification(message);
 }
@@ -36,7 +34,7 @@ Future<void> _do_when_use_touch_tab_into_notification_showed(
     AppContext.instance.navigatorKey.currentState
         ?.pushNamed(routeName, arguments: {
       "test":
-          "AppContext.instance.navigatorKey.currentState?.pushNamed(routeName",
+      "AppContext.instance.navigatorKey.currentState?.pushNamed(routeName",
       "msg": msg
     });
 
@@ -53,95 +51,60 @@ class NotificationHelper {
 
   static const String notifyLagerIcon = "@drawable/notification_icon";
 
-  static AndroidInitializationSettings initializationSettingsAndroid =
-      const AndroidInitializationSettings(notifySmallIcon);
+  NotificationHelper._privateConstructor() {}
+
+  static final NotificationHelper instance =
+  NotificationHelper._privateConstructor();
+
+  static const AndroidInitializationSettings _initializationSettingsAndroid =
+  AndroidInitializationSettings(notifySmallIcon);
 
   /// Create a [AndroidNotificationChannel] for heads up notifications
-  static AndroidNotificationChannel channel = const AndroidNotificationChannel(
+  static const AndroidNotificationChannel _channelAndroid =
+  AndroidNotificationChannel(
     'high_importance_channel', // id
     'High Importance Notifications', // title
     description:
-        'This channel is used for important notifications.', // description
+    'This channel is used for important notifications.', // description
     importance: Importance.high,
     //enableLights: true,
     //ledColor: Colors.orange
   );
 
-  NotificationHelper._privateConstructor() {}
-
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-  static final NotificationHelper instance =
-      NotificationHelper._privateConstructor();
-
-  static InitializationSettings initializationSettings = InitializationSettings(
+  static FlutterLocalNotificationsPlugin? _flutterLocalNotificationsPlugin;
+  static InitializationSettings initializationSettings =
+  const InitializationSettings(
     //iOS: initializationSettingsIOS,
-    android: initializationSettingsAndroid,
+    android: _initializationSettingsAndroid,
   );
 
-  var isFlutterLocalNotificationsInitialized = false;
-
-  bool _is_init_call_in_void_main = false;
-
-  Future<void> init_call_in_void_main() async {
-    if (_is_init_call_in_void_main == true) return;
-    _is_init_call_in_void_main = true;
-
-    print("---- NotificationHelper.init_call_in_void_main");
-
-    AppContext.instance.initFirebaseApp();
-    FirebaseMessaging.instance.app = AppContext.instance.firebaseApp!;
-    if (!kIsWeb) {
-      await NotificationHelper.instance
-          ._setupNotifications(_do_when_use_touch_tab_into_notification_showed);
-    }
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  }
-
-  bool _isForgroundRegister = false;
-
-  Future<void> onForgroundNotification(
-      Future<void> Function(RemoteMessage) handle) async {
-    if (_isForgroundRegister == true) {
-      print(
-          "---- onForgroundNotification: WARNING : called somewhere, should call one time in main");
-      return;
-    }
-    _isForgroundRegister = true;
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-      await init_call_in_void_main();
-      print('---- Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
-
-      handle(message);
-    });
-  }
+  var _is_setupNotifications = false;
 
   Future<void> _setupNotifications(
       Future<void> Function(NotificationResponse)
-          do_when_use_touch_tab_into_notification_showed) async {
-    if (isFlutterLocalNotificationsInitialized) {
+      doWhenUseTouchTabIntoNotificationShowed) async {
+    if (_is_setupNotifications) {
       return;
     }
 
-    isFlutterLocalNotificationsInitialized = true;
+    _is_setupNotifications = true;
 
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    flutterLocalNotificationsPlugin.initialize(
+    _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    _flutterLocalNotificationsPlugin!.initialize(
       initializationSettings,
       onDidReceiveBackgroundNotificationResponse:
-          do_when_use_touch_tab_into_notification_showed,
-      onDidReceiveNotificationResponse:
-          do_when_use_touch_tab_into_notification_showed,
+      doWhenUseTouchTabIntoNotificationShowed,
+      onDidReceiveNotificationResponse: doWhenUseTouchTabIntoNotificationShowed,
     );
 
     /// Create an Android Notification Channel.
     ///
     /// We use this channel in the `AndroidManifest.xml` file to override the
     /// default FCM channel to enable heads up notifications.
-    await flutterLocalNotificationsPlugin
+    await _flutterLocalNotificationsPlugin!
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(_channelAndroid);
 
     /// Update the iOS foreground notification presentation options to allow
     /// heads up notifications.
@@ -158,7 +121,7 @@ class NotificationHelper {
 
     FirebaseMessaging.instance.onTokenRefresh?.listen((fcmTokenNew) async {
       // TODO: If necessary send token to application server.
-      //fcmToken = await FirebaseMessaging.instance.getToken();
+      fcmToken = await FirebaseMessaging.instance.getToken();
       print("---- _fcmToken refresh");
       print(fcmTokenNew);
       // Note: This callback is fired at each app startup and whenever a new
@@ -183,19 +146,42 @@ class NotificationHelper {
     // print('${recheckSettings?.authorizationStatus??""}');
   }
 
-  void showNotification(RemoteMessage message) {
+  bool _is_init_call_in_void_main = false;
+
+  Future<void> init_call_in_void_main() async {
+    if (_is_init_call_in_void_main == true) return;
+    _is_init_call_in_void_main = true;
+
+    print("---- NotificationHelper.init_call_in_void_main");
+
+    AppContext.instance.initFirebaseApp();
+    FirebaseMessaging.instance.app = AppContext.instance.firebaseApp!;
+
+    if (!kIsWeb) {
+      await NotificationHelper.instance
+          ._setupNotifications(_do_when_use_touch_tab_into_notification_showed);
+    }
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
+
+  Future<void> showNotification(RemoteMessage message) async {
+    if (_flutterLocalNotificationsPlugin == null) {
+      await init_call_in_void_main();
+    }
+
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
     if (!kIsWeb) {
-      flutterLocalNotificationsPlugin.show(
+      _flutterLocalNotificationsPlugin!.show(
         notification.hashCode,
         jsonEncode(message.data),
         jsonEncode(message.data),
         NotificationDetails(
           android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            channelDescription: channel.description,
+            _channelAndroid.id,
+            _channelAndroid.name,
+            channelDescription: _channelAndroid.description,
             // TODO add a proper drawable resource to android, for now using
             //      one that already exists in example app.
             icon: notifySmallIcon,
@@ -216,5 +202,28 @@ class NotificationHelper {
     fcmToken = await FirebaseMessaging.instance.getToken();
 
     return fcmToken ?? "";
+  }
+
+  bool _isForgroundRegister = false;
+
+  Future<void> onForgroundNotification(
+      Future<void> Function(RemoteMessage) handle) async {
+    if (_flutterLocalNotificationsPlugin == null) {
+      await init_call_in_void_main();
+    }
+
+    if (_isForgroundRegister == true) {
+      print(
+          "---- onForgroundNotification: WARNING : called somewhere, should call one time in main");
+      return;
+    }
+    _isForgroundRegister = true;
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      await init_call_in_void_main();
+      print('---- Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      handle(message);
+    });
   }
 }
