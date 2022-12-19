@@ -37,19 +37,23 @@ class AppContext {
     ],
   );
 
-  FirebaseApp? _firebaseApp;
-  FirebaseDatabase? _firebaseDb;
-  FirebaseAuth? _firebaseAuth;
+  FirebaseApp? firebaseApp;
+  FirebaseDatabase? firebaseDb;
+  FirebaseAuth? firebaseAuth;
 
   Map<String, WidgetBuilder> routesForNavigator = <String, WidgetBuilder>{};
 
   bool _isInitFirebaseApp = false;
 
+  Future<void> init_call_in_void_main() async {
+    await initFirebaseApp();
+  }
+
   Future<void> initFirebaseApp() async {
     if (_isInitFirebaseApp == true) return;
     _isInitFirebaseApp = true;
 
-    _firebaseApp = await Firebase.initializeApp(
+    firebaseApp = await Firebase.initializeApp(
         name: "AppContext",
         options: const FirebaseOptions(
             apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
@@ -77,8 +81,8 @@ class AppContext {
         var info = await _handleGetContact(CurrentUser!);
         logedInfo = LogedInfo(CurrentUser!, info);
 
-        _firebaseAuth = FirebaseAuth.instanceFor(
-            app: _firebaseApp!, persistence: Persistence.LOCAL);
+        firebaseAuth = FirebaseAuth.instanceFor(
+            app: firebaseApp!, persistence: Persistence.LOCAL);
 
         // Obtain the auth details from the request
         final GoogleSignInAuthentication? googleAuth =
@@ -90,16 +94,16 @@ class AppContext {
         );
 
         //to access other firebase s
-        await _firebaseAuth!.signInWithCredential(credential);
+        await firebaseAuth!.signInWithCredential(credential);
 
-        print(_firebaseAuth?.currentUser?.displayName);
+        print(firebaseAuth?.currentUser?.displayName);
 
-        _firebaseDb = FirebaseDatabase.instanceFor(
-            app: _firebaseApp!,
+        firebaseDb = FirebaseDatabase.instanceFor(
+            app: firebaseApp!,
             databaseURL:
                 "https://realtimedbtest-d8c6b-default-rtdb.asia-southeast1.firebasedatabase.app");
 
-        DatabaseReference dbTestRef = _firebaseDb!.ref("fluttertest");
+        DatabaseReference dbTestRef = firebaseDb!.ref("fluttertest");
 
         dbTestRef.onValue.listen((event) async {
           print("event.snapshot.value");

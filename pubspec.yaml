@@ -45,6 +45,22 @@ dependencies:
   firebase_auth:
   flutter_local_notifications:
   flutter_timezone:
+  mutex:
+  opencv_4:
+  just_audio:  # substitute version number
+  just_audio_mpv:  # substitute version number
+  microphone:
+  flutter_audio_cutter:
+  flutter_audio_capture:
+  permission_handler:
+  baseflow_plugin_template:
+  oktoast:
+  path_provider:
+  flutter_sound_record:
+  flutter_media_metadata:
+  easy_folder_picker:
+  file_picker:
+  ffmpeg_kit_flutter:
 
 dev_dependencies:
   flutter_test:

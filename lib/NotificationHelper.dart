@@ -1,59 +1,137 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_codding_hobbies/AppContext.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_codding_hobbies/Permissions.dart';
+import 'package:flutter_codding_hobbies/PermissionsUi.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-class NotificationHelper {
-  NotificationHelper._privateConstructor() {
-    print("init notfication helper");
-    AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings("@drawable/appicon");
-    initializationSettings = InitializationSettings(
-      //iOS: initializationSettingsIOS,
-      android: initializationSettingsAndroid,
-    );
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // If you're going to use other Firebase services in the background, such as Firestore,
+  // make sure you call `initializeApp` before using other Firebase services.
+  //await Firebase.initializeApp();
 
-    channel = const AndroidNotificationChannel(
-      'high_importance_channel', // id
-      'High Importance Notifications', // title
-      description:
-          'This channel is used for important notifications.', // description
-      importance: Importance.high,
-    );
+  print("Handling a background message: ${message.messageId}");
+  await AppContext.instance.initFirebaseApp();
+  print(
+      "---- Handling a background message: AppContext.instance.initFirebaseApp()");
+  await NotificationHelper.instance
+      ._setupNotifications(_do_when_use_touch_tab_into_notification_showed);
+  print(
+      "---- Handling a background message: _do_when_use_touch_tab_into_notification_showed");
+
+  print(jsonEncode(message.data));
+
+  NotificationHelper.instance.showNotification(message);
+}
+
+Future<void> _do_when_use_touch_tab_into_notification_showed(
+    NotificationResponse msg) async {
+  if (AppContext.instance.routesForNavigator.keys.length > 0) {
+    //todo: base on msg then find route matching
+    var routeName = AppContext.instance.routesForNavigator.keys.first;
+
+    AppContext.instance.navigatorKey.currentState
+        ?.pushNamed(routeName, arguments: {
+      "test":
+          "AppContext.instance.navigatorKey.currentState?.pushNamed(routeName",
+      "msg": msg
+    });
+
+    // get args in method build (ContextBuilder context){
+    // final args = ModalRoute.of(context)!.settings.arguments as dynamic;
   }
+}
 
-  /// Initialize the [FlutterLocalNotificationsPlugin] package.
+class NotificationHelper {
+  static const String appIcon = "@mipmap/ic_launcher_adaptive_fore";
+
+  // single color and should be .png
+  static const String notifySmallIcon = "@mipmap/ic_launcher_adaptive_fore";
+
+  static const String notifyLagerIcon = "@drawable/notification_icon";
+
+  static AndroidInitializationSettings initializationSettingsAndroid =
+      const AndroidInitializationSettings(notifySmallIcon);
+
+  /// Create a [AndroidNotificationChannel] for heads up notifications
+  static AndroidNotificationChannel channel = const AndroidNotificationChannel(
+    'high_importance_channel', // id
+    'High Importance Notifications', // title
+    description:
+        'This channel is used for important notifications.', // description
+    importance: Importance.high,
+    //enableLights: true,
+    //ledColor: Colors.orange
+  );
+
+  NotificationHelper._privateConstructor() {}
+
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   static final NotificationHelper instance =
       NotificationHelper._privateConstructor();
 
-  /// Create a [AndroidNotificationChannel] for heads up notifications
-  late AndroidNotificationChannel channel;
-
-  late InitializationSettings initializationSettings;
+  static InitializationSettings initializationSettings = InitializationSettings(
+    //iOS: initializationSettingsIOS,
+    android: initializationSettingsAndroid,
+  );
 
   var isFlutterLocalNotificationsInitialized = false;
 
-  Future<void> setupNotifications(
+  bool _is_init_call_in_void_main = false;
+
+  Future<void> init_call_in_void_main() async {
+    if (_is_init_call_in_void_main == true) return;
+    _is_init_call_in_void_main = true;
+
+    print("---- NotificationHelper.init_call_in_void_main");
+
+    AppContext.instance.initFirebaseApp();
+    FirebaseMessaging.instance.app = AppContext.instance.firebaseApp!;
+    if (!kIsWeb) {
+      await NotificationHelper.instance
+          ._setupNotifications(_do_when_use_touch_tab_into_notification_showed);
+    }
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
+
+  bool _isForgroundRegister = false;
+
+  Future<void> onForgroundNotification(
+      Future<void> Function(RemoteMessage) handle) async {
+    if (_isForgroundRegister == true) {
+      print(
+          "---- onForgroundNotification: WARNING : called somewhere, should call one time in main");
+      return;
+    }
+    _isForgroundRegister = true;
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+      await init_call_in_void_main();
+      print('---- Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      handle(message);
+    });
+  }
+
+  Future<void> _setupNotifications(
       Future<void> Function(NotificationResponse)
-          topFunction_onTab_onTouch_onSelect_to_notification_showed) async {
+          do_when_use_touch_tab_into_notification_showed) async {
     if (isFlutterLocalNotificationsInitialized) {
       return;
     }
+
+    isFlutterLocalNotificationsInitialized = true;
 
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveBackgroundNotificationResponse:
-          topFunction_onTab_onTouch_onSelect_to_notification_showed,
+          do_when_use_touch_tab_into_notification_showed,
       onDidReceiveNotificationResponse:
-          topFunction_onTab_onTouch_onSelect_to_notification_showed,
+          do_when_use_touch_tab_into_notification_showed,
     );
 
     /// Create an Android Notification Channel.
@@ -76,12 +154,12 @@ class NotificationHelper {
 
     var token = await getFcmToken();
 
-    print("Token device id: $token");
+    print("---- Token device id: $token");
 
     FirebaseMessaging.instance.onTokenRefresh?.listen((fcmTokenNew) async {
       // TODO: If necessary send token to application server.
       //fcmToken = await FirebaseMessaging.instance.getToken();
-      print("_fcmToken refresh");
+      print("---- _fcmToken refresh");
       print(fcmTokenNew);
       // Note: This callback is fired at each app startup and whenever a new
       // token is generated.
@@ -103,8 +181,6 @@ class NotificationHelper {
     //
     // print("---User granted permission:");
     // print('${recheckSettings?.authorizationStatus??""}');
-
-    isFlutterLocalNotificationsInitialized = true;
   }
 
   void showNotification(RemoteMessage message) {
@@ -122,9 +198,10 @@ class NotificationHelper {
             channelDescription: channel.description,
             // TODO add a proper drawable resource to android, for now using
             //      one that already exists in example app.
-            icon: 'jun_sau_avatar',
-            largeIcon:
-                const DrawableResourceAndroidBitmap('@drawable/jun_sau_avatar'),
+            icon: notifySmallIcon,
+            colorized: true,
+            color: Colors.orange,
+            largeIcon: const DrawableResourceAndroidBitmap(notifyLagerIcon),
           ),
         ),
       );
@@ -138,7 +215,6 @@ class NotificationHelper {
 
     fcmToken = await FirebaseMessaging.instance.getToken();
 
-    return fcmToken??"";
-
+    return fcmToken ?? "";
   }
 }

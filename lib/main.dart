@@ -1,60 +1,25 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_codding_hobbies/AppContext.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_codding_hobbies/NotificationHelper.dart';
-import 'package:flutter_codding_hobbies/Permissions.dart';
+import 'package:flutter_codding_hobbies/PermissionsUi.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  //await Firebase.initializeApp();
-
-  print("Handling a background message: ${message.messageId}");
-  await AppContext.instance.initFirebaseApp();
-  print("---- Handling a background message: AppContext.instance.initFirebaseApp()");
-  await NotificationHelper.instance.setupNotifications(_do_when_use_touch_tab_into_notification_showed);
-  print("---- Handling a background message: _do_when_use_touch_tab_into_notification_showed");
-
-  print(jsonEncode(message.data));
-
-  NotificationHelper.instance.showNotification (message);
-}
-
-Future<void> _do_when_use_touch_tab_into_notification_showed(
-    NotificationResponse msg) async {
-  if (AppContext.instance.routesForNavigator.keys.length > 0) {
-    //todo: base on msg then find route matching
-    var routeName = AppContext.instance.routesForNavigator.keys.first;
-    AppContext.instance.navigatorKey.currentState
-        ?.pushNamed(routeName, arguments: {
-      "test":
-          "AppContext.instance.navigatorKey.currentState?.pushNamed(routeName",
-      "msg": msg
-    });
-  }
-}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   //todo: mapping your widget with router key for navigate, eg: noti onTab show screen
   AppContext.instance.routesForNavigator.addAll({
-    "Permissions": (BuildContext ctx) => Permissions(),
+    "Permissions": (BuildContext ctx) => PermissionsUi(),
   });
 
-  await AppContext.instance.initFirebaseApp();
+  await AppContext.instance.init_call_in_void_main();
 
-  if (!kIsWeb) {
-    await NotificationHelper.instance.setupNotifications(_do_when_use_touch_tab_into_notification_showed);
-  }
-
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await NotificationHelper.instance.init_call_in_void_main();
 
   runApp(const MyApp());
 }
@@ -70,7 +35,7 @@ class MyApp extends StatelessWidget {
       routes: AppContext.instance.routesForNavigator,
       title: 'Flutter boilerplate',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.brown,
       ),
       home: const MyHomePage(title: 'Flutter boilerplate'),
     );
@@ -93,18 +58,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
-      }
-
-      _lastMsg = jsonEncode(message.data);
+    NotificationHelper.instance.onForgroundNotification( (msg) async {
+      _lastMsg= jsonEncode(msg.data);
       if (mounted) setState(() {});
-
     });
 
     AppContext.instance.SignInSilently().then((v) {
@@ -114,13 +70,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: SafeArea(
-        child:AppContext.instance.CurrentUser == null?Text("Have to login first, click float button bellow"): _build(),
+        child: AppContext.instance.CurrentUser == null
+            ? Text("Have to login first, click float button bellow")
+            : _build(),
       ),
       floatingActionButton: AppContext.instance.CurrentUser == null
           ? FloatingActionButton(

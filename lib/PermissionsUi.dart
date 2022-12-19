@@ -1,24 +1,16 @@
-// Copyright 2022, the Chromium project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// ignore_for_file: require_trailing_commas
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Requests & displays the current user permissions for this device.
-class Permissions extends StatefulWidget {
-
-  Permissions(){
-  }
+class PermissionsUi extends StatefulWidget {
+  PermissionsUi() {}
 
   @override
-  State<StatefulWidget> createState() => _Permissions();
+  State<StatefulWidget> createState() => _PermissionsUiState();
 }
 
-class _Permissions extends State<Permissions> {
+class _PermissionsUiState extends State<PermissionsUi> {
   bool _requested = false;
   bool _fetching = false;
   late NotificationSettings _settings;
@@ -66,7 +58,6 @@ class _Permissions extends State<Permissions> {
 
   @override
   Widget build(BuildContext context) {
-
     final args = ModalRoute.of(context)!.settings.arguments as dynamic;
 
     print("AppContext.instance.navigatorKey.currentState?.pushNamed(routeName");
@@ -101,7 +92,11 @@ class _Permissions extends State<Permissions> {
           onPressed: checkPermissions, child: const Text('Reload Permissions')),
     ]);
 
-    return Scaffold(body: SafeArea(child: lsv,),) ;
+    return Scaffold(
+      body: SafeArea(
+        child: lsv,
+      ),
+    );
   }
 }
 
