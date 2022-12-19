@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_codding_hobbies/AppContext.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_codding_hobbies/NotificationHelper.dart';
 import 'package:flutter_codding_hobbies/Permissions.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -15,118 +16,44 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   //await Firebase.initializeApp();
 
   await AppContext.instance.initFirebaseApp();
-  await setupFlutterNotifications();
+  await NotificationHelper.instance.setupNotifications(_onTab_onTouch_onSelect_to_notification_showed);
 
   print("Handling a background message: ${message.messageId}");
 
   print(jsonEncode(message.data));
 
-  showFlutterNotification(message);
+  NotificationHelper.instance.showNotification (message);
 }
 
 Future<void> _onTab_onTouch_onSelect_to_notification_showed(
     NotificationResponse msg) async {
   if (AppContext.instance.routesForNavigator.keys.length > 0) {
+    //todo: base on msg then find route matching
     var routeName = AppContext.instance.routesForNavigator.keys.first;
-    AppContext.instance.navigatorKey.currentState?.pushNamed(routeName,
-        arguments: {
-          "test":
-              "AppContext.instance.navigatorKey.currentState?.pushNamed(routeName"
-        });
+    AppContext.instance.navigatorKey.currentState
+        ?.pushNamed(routeName, arguments: {
+      "test":
+          "AppContext.instance.navigatorKey.currentState?.pushNamed(routeName",
+      "msg": msg
+    });
   }
 }
-
-/// Create a [AndroidNotificationChannel] for heads up notifications
-late AndroidNotificationChannel channel;
-
-final AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings("@drawable/jun_sau_avatar");
-
-final InitializationSettings initializationSettings = InitializationSettings(
-  //iOS: initializationSettingsIOS,
-  android: initializationSettingsAndroid,
-);
-
-var isFlutterLocalNotificationsInitialized = false;
-
-Future<void> setupFlutterNotifications() async {
-  if (isFlutterLocalNotificationsInitialized) {
-    return;
-  }
-  channel = const AndroidNotificationChannel(
-    'high_importance_channel', // id
-    'High Importance Notifications', // title
-    description:
-        'This channel is used for important notifications.', // description
-    importance: Importance.high,
-  );
-  flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveBackgroundNotificationResponse:
-        _onTab_onTouch_onSelect_to_notification_showed,
-    onDidReceiveNotificationResponse:
-        _onTab_onTouch_onSelect_to_notification_showed,
-  );
-
-  /// Create an Android Notification Channel.
-  ///
-  /// We use this channel in the `AndroidManifest.xml` file to override the
-  /// default FCM channel to enable heads up notifications.
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-
-  /// Update the iOS foreground notification presentation options to allow
-  /// heads up notifications.
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-  isFlutterLocalNotificationsInitialized = true;
-}
-
-void showFlutterNotification(RemoteMessage message) {
-  RemoteNotification? notification = message.notification;
-  AndroidNotification? android = message.notification?.android;
-  if (!kIsWeb) {
-    flutterLocalNotificationsPlugin.show(
-      notification.hashCode,
-      jsonEncode(message.data),
-      jsonEncode(message.data),
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          channel.id,
-          channel.name,
-          channelDescription: channel.description,
-          // TODO add a proper drawable resource to android, for now using
-          //      one that already exists in example app.
-          icon: 'jun_sau_avatar',
-          largeIcon:
-              const DrawableResourceAndroidBitmap('@drawable/jun_sau_avatar'),
-        ),
-      ),
-    );
-  }
-}
-
-/// Initialize the [FlutterLocalNotificationsPlugin] package.
-late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AppContext.instance.initFirebaseApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
+  //todo: mapping your widget with router key for navigate, eg: noti onTab show screen
   AppContext.instance.routesForNavigator.addAll({
     "Permissions": (BuildContext ctx) => Permissions(),
   });
 
+  await AppContext.instance.initFirebaseApp();
+
   if (!kIsWeb) {
-    await setupFlutterNotifications();
+    await NotificationHelper.instance.setupNotifications(_onTab_onTouch_onSelect_to_notification_showed);
   }
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   runApp(const MyApp());
 }
@@ -165,11 +92,20 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    AppContext.instance.forgroundNotification(context, showNoti: (msg) async {
-      //showFlutterNotification(msg);
-      _lastMsg = jsonEncode(msg.data);
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      }
+
+      _lastMsg = jsonEncode(message.data);
       if (mounted) setState(() {});
+
     });
+
 
     AppContext.instance.SignInSilently().then((v) {
       if (mounted) setState(() {});
@@ -178,12 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -223,7 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           ElevatedButton(
             onPressed: () {
-              showFlutterNotification(
+              NotificationHelper.instance.showNotification(
                   RemoteMessage(data: {"title": "test local noti"}));
             },
             child: Text("Show noti local test"),
@@ -236,7 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Text("Show permissions"),
           ),
           Text("Notification received: $_lastMsg"),
-          SelectableText("${AppContext.instance.fcmToken}"),
+          SelectableText("${NotificationHelper.instance.fcmToken}"),
         ],
       ),
     );

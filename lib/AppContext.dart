@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_codding_hobbies/NotificationHelper.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -16,7 +17,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 //https://github.com/firebase/flutterfire/blob/master/packages/firebase_messaging/firebase_messaging/example/lib/main.dart
 
 class AppContext {
-  AppContext._privateConstructor();
+  AppContext._privateConstructor() {}
 
   static final AppContext instance = AppContext._privateConstructor();
 
@@ -38,57 +39,31 @@ class AppContext {
 
   FirebaseApp? _firebaseApp;
   FirebaseDatabase? _firebaseDb;
-  FirebaseMessaging? _firebaseMsg;
   FirebaseAuth? _firebaseAuth;
-  String? fcmToken;
+
+  Map<String, WidgetBuilder> routesForNavigator = <String, WidgetBuilder>{};
+
+  bool _isInitFirebaseApp = false;
 
   Future<void> initFirebaseApp() async {
-    if (_firebaseApp != null) return;
+    if (_isInitFirebaseApp == true) return;
+    _isInitFirebaseApp = true;
 
     _firebaseApp = await Firebase.initializeApp(
-        name: "DEFAULT",
-        options: FirebaseOptions(
+        name: "AppContext",
+        options: const FirebaseOptions(
             apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
             appId: "realtimedbtest-d8c6b",
             messagingSenderId: "787425357847",
             projectId: "realtimedbtest-d8c6b"));
   }
 
-  bool _isInit_forgroundNotification=false;
-
-  Future<void> forgroundNotification(BuildContext context,
-  {Future<void> Function(RemoteMessage)? showNoti }) async {
-    if(_isInit_forgroundNotification==true) return;
-    _isInit_forgroundNotification=true;
-    //Foreground messages notification (FCM)
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if(showNoti!=null){
-        showNoti(message);
-      }
-      print('Got a message whilst in the foreground!');
-      print('Message data: ${message.data}');
-
-      if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
-      }
-    });
-
-    //
-    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    //   print('A new onMessageOpenedApp event was published!');
-    //   Navigator.pushNamed(
-    //     context,
-    //     '/message',
-    //     arguments: MessageArguments(message, true),
-    //   );
-    // });
-  }
-
-  GlobalKey<NavigatorState> navigatorKey = GlobalKey(debugLabel: "Main Navigator");
+  GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey(debugLabel: "Main Navigator");
 
   Future<void> SignInSilently() async {
-    
+    await initFirebaseApp();
+
     _googleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount? account) async {
       CurrentUser = account;
@@ -96,35 +71,6 @@ class AppContext {
       if (CurrentUser != null) {
         var info = await _handleGetContact(CurrentUser!);
         logedInfo = LogedInfo(CurrentUser!, info);
-
-        // _firebaseApp = await Firebase.initializeApp(
-        //     name: "DEFAULT",
-        //     options: FirebaseOptions(
-        //         apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
-        //         appId: "realtimedbtest-d8c6b",
-        //         messagingSenderId: "787425357847",
-        //         projectId: "realtimedbtest-d8c6b"));
-
-        await initFirebaseApp();
-
-        // // //https://firebase.flutter.dev/docs/messaging/usage/
-        _firebaseMsg = FirebaseMessaging.instance;
-
-        fcmToken = await FirebaseMessaging.instance.getToken();
-        NotificationSettings settings = await _firebaseMsg!.requestPermission(
-          alert: true,
-          announcement: true,
-          badge: true,
-          carPlay: true,
-          criticalAlert: true,
-          provisional: true,
-          sound: true,
-        );
-
-        settings =
-        await FirebaseMessaging.instance.getNotificationSettings();
-
-        print('User granted permission: ${settings.authorizationStatus}');
 
 
         _firebaseAuth = FirebaseAuth.instanceFor(
@@ -154,7 +100,6 @@ class AppContext {
             databaseURL:
                 "https://realtimedbtest-d8c6b-default-rtdb.asia-southeast1.firebasedatabase.app");
 
-
         DatabaseReference dbTestRef = _firebaseDb!.ref("fluttertest");
 
         dbTestRef.onValue.listen((event) async {
@@ -175,26 +120,26 @@ class AppContext {
           //     .set({"name": "du ${DateTime.now().toIso8601String()}"});
         });
 
-        print("_fcmToken");
-        print(fcmToken);
-
-        FirebaseMessaging.instance.onTokenRefresh.listen((fcmTokenNew) async {
-          // TODO: If necessary send token to application server.
-          fcmToken = await FirebaseMessaging.instance.getToken();
-          print("_fcmToken refresh");
-          print(fcmTokenNew);
-          // Note: This callback is fired at each app startup and whenever a new
-          // token is generated.
-        }).onError((err) {
-          // Error getting token.
-        });
 
       } else {
         logedInfo = null;
       }
     });
     await _googleSignIn.signInSilently();
+  }
 
+  Future<void> SignOut() async {
+    await _googleSignIn.disconnect();
+    CurrentUser = null;
+    logedInfo = null;
+  }
+
+  Future<void> SignIn() async {
+    try {
+      await _googleSignIn.signIn();
+    } catch (error) {
+      print(error);
+    }
   }
 
   Future<Map<String, dynamic>> _handleGetContact(
@@ -230,24 +175,6 @@ class AppContext {
     }
     return null;
   }
-
-  Future<void> SignOut() async {
-    await _googleSignIn.disconnect();
-    CurrentUser = null;
-    logedInfo = null;
-  }
-
-  Future<void> SignIn() async {
-    try {
-      await _googleSignIn.signIn();
-    } catch (error) {
-      print(error);
-    }
-  }
-
-
-  Map<String,WidgetBuilder> routesForNavigator=Map<String,WidgetBuilder>();
-
 }
 
 class LogedInfo {
