@@ -3,10 +3,19 @@
    <application
         android:label="Flutter boilerplate"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@drawable/appicon"
+       >
+       <!-- Set custom default icon. This is used when no icon is set for incoming notification messages.
+          See README(https://goo.gl/l4GJaQ) for more. -->
+       <meta-data
+       android:name="com.google.firebase.messaging.default_notification_icon"
+       android:resource="@drawable/notification_icon"
+       />
         <activity
             android:name=".MainActivity"
-            android:icon="@drawable/jun_sau_avatar"
+            android:icon="@drawable/appicon"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
             android:exported="true"
             android:launchMode="singleTop"
             android:theme="@style/LaunchTheme"
@@ -21,6 +30,7 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -31,8 +41,10 @@
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
             android:name="flutterEmbedding"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:value="2" />
+            android:value="2"
+            />
+
+
+
     </application>
 </manifest>

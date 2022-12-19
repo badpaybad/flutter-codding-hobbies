@@ -40,8 +40,7 @@ class AppContext {
   FirebaseDatabase? _firebaseDb;
   FirebaseMessaging? _firebaseMsg;
   FirebaseAuth? _firebaseAuth;
-  String? FcmToken;
-
+  String? fcmToken;
 
   Future<void> initFirebaseApp() async {
     if (_firebaseApp != null) return;
@@ -111,7 +110,7 @@ class AppContext {
         // // //https://firebase.flutter.dev/docs/messaging/usage/
         _firebaseMsg = FirebaseMessaging.instance;
 
-        FcmToken = await FirebaseMessaging.instance.getToken();
+        fcmToken = await FirebaseMessaging.instance.getToken();
         NotificationSettings settings = await _firebaseMsg!.requestPermission(
           alert: true,
           announcement: true,
@@ -177,13 +176,13 @@ class AppContext {
         });
 
         print("_fcmToken");
-        print(FcmToken);
+        print(fcmToken);
 
-        FirebaseMessaging.instance.onTokenRefresh.listen((fcmToken) async {
+        FirebaseMessaging.instance.onTokenRefresh.listen((fcmTokenNew) async {
           // TODO: If necessary send token to application server.
-          FcmToken = await FirebaseMessaging.instance.getToken();
+          fcmToken = await FirebaseMessaging.instance.getToken();
           print("_fcmToken refresh");
-          print(FcmToken);
+          print(fcmTokenNew);
           // Note: This callback is fired at each app startup and whenever a new
           // token is generated.
         }).onError((err) {

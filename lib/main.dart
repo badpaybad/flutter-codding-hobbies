@@ -9,7 +9,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_codding_hobbies/Permissions.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // If you're going to use other Firebase services in the background, such as Firestore,
   // make sure you call `initializeApp` before using other Firebase services.
@@ -25,16 +24,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   showFlutterNotification(message);
 }
 
-Future<void> _onTab_onTouch_onSelect_to_notification_showed(NotificationResponse msg) async{
-
+Future<void> _onTab_onTouch_onSelect_to_notification_showed(
+    NotificationResponse msg) async {
   if (AppContext.instance.routesForNavigator.keys.length > 0) {
     var routeName = AppContext.instance.routesForNavigator.keys.first;
     AppContext.instance.navigatorKey.currentState?.pushNamed(routeName,
-    arguments:  {"test":"AppContext.instance.navigatorKey.currentState?.pushNamed(routeName"}
-    );
+        arguments: {
+          "test":
+              "AppContext.instance.navigatorKey.currentState?.pushNamed(routeName"
+        });
   }
 }
-
 
 /// Create a [AndroidNotificationChannel] for heads up notifications
 late AndroidNotificationChannel channel;
@@ -63,8 +63,10 @@ Future<void> setupFlutterNotifications() async {
   flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
-    onDidReceiveBackgroundNotificationResponse: _onTab_onTouch_onSelect_to_notification_showed,
-    onDidReceiveNotificationResponse: _onTab_onTouch_onSelect_to_notification_showed,
+    onDidReceiveBackgroundNotificationResponse:
+        _onTab_onTouch_onSelect_to_notification_showed,
+    onDidReceiveNotificationResponse:
+        _onTab_onTouch_onSelect_to_notification_showed,
   );
 
   /// Create an Android Notification Channel.
@@ -101,7 +103,7 @@ void showFlutterNotification(RemoteMessage message) {
           channelDescription: channel.description,
           // TODO add a proper drawable resource to android, for now using
           //      one that already exists in example app.
-          icon: '@drawable/jun_sau_avatar',
+          icon: 'jun_sau_avatar',
           largeIcon:
               const DrawableResourceAndroidBitmap('@drawable/jun_sau_avatar'),
         ),
@@ -119,7 +121,7 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   AppContext.instance.routesForNavigator.addAll({
-    "Permissions": (BuildContext ctx)=> Permissions(),
+    "Permissions": (BuildContext ctx) => Permissions(),
   });
 
   if (!kIsWeb) {
@@ -129,15 +131,12 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
       navigatorKey: AppContext.instance.navigatorKey,
       routes: AppContext.instance.routesForNavigator,
@@ -191,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: SafeArea(
         child: _build(),
-      ) ,
+      ),
       floatingActionButton: AppContext.instance.CurrentUser == null
           ? FloatingActionButton(
               tooltip: 'Login',
@@ -213,7 +212,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _build(){
+  Widget _build() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -222,11 +221,22 @@ class _MyHomePageState extends State<MyHomePage> {
             'Info: ${AppContext.instance.CurrentUser?.displayName}',
             style: Theme.of(context).textTheme.headline4,
           ),
-          ElevatedButton(onPressed: ()async{
-            AppContext.instance.navigatorKey.currentState?.pushNamed("Permissions");
-          }, child: Text("Show permissions"),),
+          ElevatedButton(
+            onPressed: () {
+              showFlutterNotification(
+                  RemoteMessage(data: {"title": "test local noti"}));
+            },
+            child: Text("Show noti local test"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              AppContext.instance.navigatorKey.currentState
+                  ?.pushNamed("Permissions");
+            },
+            child: Text("Show permissions"),
+          ),
           Text("Notification received: $_lastMsg"),
-          SelectableText("${AppContext.instance.FcmToken}"),
+          SelectableText("${AppContext.instance.fcmToken}"),
         ],
       ),
     );
