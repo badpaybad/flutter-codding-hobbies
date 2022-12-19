@@ -16,7 +16,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   //await Firebase.initializeApp();
 
   await AppContext.instance.initFirebaseApp();
-  await NotificationHelper.instance.setupNotifications(_onTab_onTouch_onSelect_to_notification_showed);
+  await NotificationHelper.instance.setupNotifications(_do_when_use_touch_tab_into_notification_showed);
 
   print("Handling a background message: ${message.messageId}");
 
@@ -25,7 +25,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   NotificationHelper.instance.showNotification (message);
 }
 
-Future<void> _onTab_onTouch_onSelect_to_notification_showed(
+Future<void> _do_when_use_touch_tab_into_notification_showed(
     NotificationResponse msg) async {
   if (AppContext.instance.routesForNavigator.keys.length > 0) {
     //todo: base on msg then find route matching
@@ -50,7 +50,7 @@ Future<void> main() async {
   await AppContext.instance.initFirebaseApp();
 
   if (!kIsWeb) {
-    await NotificationHelper.instance.setupNotifications(_onTab_onTouch_onSelect_to_notification_showed);
+    await NotificationHelper.instance.setupNotifications(_do_when_use_touch_tab_into_notification_showed);
   }
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

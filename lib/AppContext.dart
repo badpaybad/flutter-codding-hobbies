@@ -56,6 +56,8 @@ class AppContext {
             appId: "realtimedbtest-d8c6b",
             messagingSenderId: "787425357847",
             projectId: "realtimedbtest-d8c6b"));
+
+    var token_deviceid = await NotificationHelper.instance.getFcmToken();
   }
 
   GlobalKey<NavigatorState> navigatorKey =
@@ -64,6 +66,9 @@ class AppContext {
   Future<void> SignInSilently() async {
     await initFirebaseApp();
 
+    //todo: if you dont want use google login, use your server, you need custom token from server use firebase admin to generate
+    //_firebaseAuth!.signInWithCustomToken(token_custom);
+
     _googleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount? account) async {
       CurrentUser = account;
@@ -71,7 +76,6 @@ class AppContext {
       if (CurrentUser != null) {
         var info = await _handleGetContact(CurrentUser!);
         logedInfo = LogedInfo(CurrentUser!, info);
-
 
         _firebaseAuth = FirebaseAuth.instanceFor(
             app: _firebaseApp!, persistence: Persistence.LOCAL);
@@ -85,16 +89,8 @@ class AppContext {
           idToken: googleAuth?.idToken,
         );
 
-        //todo: if you dont want use google login, use your server, you need custom token from server use firebase admin to generate
-        //_firebaseAuth!.signInWithCustomToken(token_custom);
-
         //to access other firebase s
         await _firebaseAuth!.signInWithCredential(credential);
-
-        print("_firebaseAuth");
-        if (_firebaseAuth?.currentUser == null) {
-          await _firebaseAuth?.currentUser?.reload();
-        }
 
         print(_firebaseAuth?.currentUser?.displayName);
 
@@ -122,8 +118,6 @@ class AppContext {
           // await dbTestRef
           //     .set({"name": "du ${DateTime.now().toIso8601String()}"});
         });
-
-
       } else {
         logedInfo = null;
       }
