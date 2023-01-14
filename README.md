@@ -53,3 +53,49 @@ the flow of webrtc
                 device2 -> close -> signaling redis publish to device1
                 device1 -> close peer 
                     -> can click connect to do main flow
+
+
+# ROS https://www.ros.org/
+
+If you work with ROS1 noetic https://www.ros.org/ 
+
+Many thanks to https://github.com/Sashiri/ros_nodes 
+
+You should check RosAppContext for usage of pub sub in ros 
+                
+                and in main.dart must call RosAppContext.instance.init
+
+
+### setup ros
+
+Check here http://wiki.ros.org/noetic/Installation/Ubuntu  
+                
+                //or run bash shell for Ubuntu 20.04
+                ./ros/setupros.sh
+
+                //after setup
+                //open terminal just type: 
+                roscore 
+
+You will get similar ,  ROS_MASTER_URI=http://192.168.1.8:11311/ will become to config for RosAppContext.instance.init
+
+Check ros_config.dart
+                
+                Press Ctrl-C to interrupt
+                Done checking log file disk usage. Usage is <1GB.
+
+                started roslaunch server http://192.168.1.8:34899/
+                ros_comm version 1.15.15
+
+                ....    
+                NODES
+
+                auto-starting new master
+                process[master]: started with pid [55115]
+                ROS_MASTER_URI=http://192.168.1.8:11311/
+
+                setting /run_id to c4d33a0e-9423-11ed-9925-098c12ebf2ed
+                process[rosout-1]: started with pid [55148]
+                started core service [/rosout]
+
+

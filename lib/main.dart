@@ -9,6 +9,7 @@ import 'package:flutter_codding_hobbies/MessageBus.dart';
 import 'package:flutter_codding_hobbies/NotificationHelper.dart';
 import 'package:flutter_codding_hobbies/PermissionsPage.dart';
 import 'package:flutter_codding_hobbies/WebRtcP2pVideoStreamPage.dart';
+import 'package:flutter_codding_hobbies/ros/RosAppContext.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -19,6 +20,14 @@ Future<void> main() async {
   await Hive.initFlutter();
   await MessageBus.instance.Init();
   await AppContext.instance.init_call_in_void_main();
+
+  ///if u work with ros1 noetic, ros.org
+  //       String _rosMasterUri = "http://192.168.1.8:11311";
+  //       var ipLan=await RosAppContext.instance.findIpLan();
+  //       RosAppContext.instance.init(RosConfig(
+  //           masterUri: _rosMasterUri,
+  //           host_ip_domain_anyipv4: ipLan,
+  //           port: 12345));
 
   runApp(const MyApp());
 }
