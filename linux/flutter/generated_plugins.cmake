@@ -5,6 +5,8 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   flutter_audio_capture
   flutter_media_metadata
+  flutter_webrtc
+  record_linux
   url_launcher_linux
 )
 

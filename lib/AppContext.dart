@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_codding_hobbies/NotificationHelper.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '/NotificationHelper.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -9,6 +11,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 //https://firebase.google.com/docs/cloud-messaging/android/first-message
 //https://firebase.google.com/docs/flutter/setup?platform=ios
@@ -21,14 +25,16 @@ class AppContext {
 
   static final AppContext instance = AppContext._privateConstructor();
 
-  GoogleSignInAccount? CurrentUser;
+  GoogleSignInAccount? googleCurrentUser;
 
-  String? BearerToken;
+  String? appBearerToken;
 
-  LogedInfo? logedInfo;
+  String? appFcmToken;
+
+  UserContext? logedInfo;
 
 //https://developers.google.com/android/guides/client-auth
-  GoogleSignIn _googleSignIn = GoogleSignIn(
+  GoogleSignIn appGoogleSignIn = GoogleSignIn(
     // Optional clientId
     // clientId: '479882132969-9i9aqik3jfjd7qhci1nqf0bm2g71rm1u.apps.googleusercontent.com',
     scopes: <String>[
@@ -43,50 +49,74 @@ class AppContext {
 
   Map<String, WidgetBuilder> routesForNavigator = <String, WidgetBuilder>{};
 
-  bool _isInitFirebaseApp = false;
+  final String screenUiPermission = "PermissionsUi";
+  final String screenUiFaceDefinitionRegister = "FaceDefinitionRegister";
+
+  Image get logo => Image.network(
+      "https://omt.vn/wp-content/themes/omt/assets/images/home/logo_header_2.png");
 
   Future<void> init_call_in_void_main() async {
-    await initFirebaseApp();
+    //todo: mapping your widget with router key for navigate, eg: noti onTab show screen
+    // AppContext.instance.routesForNavigator.addAll({
+    // });
+
+    initFirebaseApp().then((value) async {
+      NotificationHelper.instance.init();
+
+    });
   }
 
+  Future<void> openScreen(String screenName) async {
+    await AppContext.instance.navigatorKey.currentState?.pushNamed(screenName);
+  }
+
+  bool _isInitFirebaseApp = false;
+
   Future<void> initFirebaseApp() async {
-    if (_isInitFirebaseApp == true) return;
-    _isInitFirebaseApp = true;
+    try {
+      if (_isInitFirebaseApp == true) return;
+      _isInitFirebaseApp = true;
 
-    firebaseApp = await Firebase.initializeApp(
-        name: "AppContext",
-        options: const FirebaseOptions(
-            apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
-            appId: "realtimedbtest-d8c6b",
-            messagingSenderId: "787425357847",
-            projectId: "realtimedbtest-d8c6b"));
+      await Firebase.initializeApp();
 
-    var token_deviceid = await NotificationHelper.instance.getFcmToken();
+      firebaseApp = await Firebase.initializeApp(
+          name: "EnglishApplication",
+          options: const FirebaseOptions(
+              apiKey: "AIzaSyBwsIOZ9nZAuypco7ERdCVM74RMF_dK8Xo",
+              appId: "realtimedbtest-d8c6b",
+              messagingSenderId: "787425357847",
+              projectId: "realtimedbtest-d8c6b"));
+
+      _isInitFirebaseApp = true;
+    } catch (ex) {
+      print("initFirebaseApp ERR: $ex");
+      _isInitFirebaseApp = false;
+    }
   }
 
   GlobalKey<NavigatorState> navigatorKey =
-      GlobalKey(debugLabel: "Main Navigator");
+  GlobalKey(debugLabel: "Main Navigator");
 
-  Future<void> SignInSilently() async {
+  Future<void> googleSignInSilently() async {
     await initFirebaseApp();
 
     //todo: if you dont want use google login, use your server, you need custom token from server use firebase admin to generate
     //_firebaseAuth!.signInWithCustomToken(token_custom);
 
-    _googleSignIn.onCurrentUserChanged
+    appGoogleSignIn.onCurrentUserChanged
         .listen((GoogleSignInAccount? account) async {
-      CurrentUser = account;
+      googleCurrentUser = account;
 
-      if (CurrentUser != null) {
-        var info = await _handleGetContact(CurrentUser!);
-        logedInfo = LogedInfo(CurrentUser!, info);
+      if (googleCurrentUser != null) {
+        var info = await _handleGetContact(googleCurrentUser!);
+        logedInfo = UserContext(googleCurrentUser!, info);
 
         firebaseAuth = FirebaseAuth.instanceFor(
             app: firebaseApp!, persistence: Persistence.LOCAL);
 
         // Obtain the auth details from the request
         final GoogleSignInAuthentication? googleAuth =
-            await account?.authentication;
+        await account?.authentication;
 
         final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth?.accessToken,
@@ -101,7 +131,7 @@ class AppContext {
         firebaseDb = FirebaseDatabase.instanceFor(
             app: firebaseApp!,
             databaseURL:
-                "https://realtimedbtest-d8c6b-default-rtdb.asia-southeast1.firebasedatabase.app");
+            "https://realtimedbtest-d8c6b-default-rtdb.asia-southeast1.firebasedatabase.app");
 
         DatabaseReference dbTestRef = firebaseDb!.ref("fluttertest");
 
@@ -110,15 +140,9 @@ class AppContext {
           print(event.snapshot.value);
         });
 
-/*{ firebase realtimedb
-  "rules": {
-    ".read":"auth.uid != null",
-    ".write":"auth.uid != null"
-  }
-}*/
         await dbTestRef.set({"name": "du ${DateTime.now().toIso8601String()}"});
 
-        Timer.periodic(Duration(seconds: 1), (timer) async {
+        Timer.periodic(const Duration(seconds: 1), (timer) async {
           // await dbTestRef
           //     .set({"name": "du ${DateTime.now().toIso8601String()}"});
         });
@@ -126,18 +150,24 @@ class AppContext {
         logedInfo = null;
       }
     });
-    await _googleSignIn.signInSilently();
+    await appGoogleSignIn.signInSilently();
   }
 
-  Future<void> SignOut() async {
-    await _googleSignIn.disconnect();
-    CurrentUser = null;
+  Future<void> googleSignOut() async {
+    await initFirebaseApp();
+
+    await appGoogleSignIn.disconnect();
+    googleCurrentUser = null;
     logedInfo = null;
   }
 
-  Future<void> SignIn() async {
+  Future<void> googleSignIn() async {
     try {
-      await _googleSignIn.signIn();
+      await initFirebaseApp();
+
+      await appGoogleSignIn.signIn();
+
+      appFcmToken = await NotificationHelper.instance.getFcmToken();
     } catch (error) {
       print(error);
     }
@@ -162,12 +192,12 @@ class AppContext {
   String? _pickFirstNamedContact(Map<String, dynamic> data) {
     final List<dynamic>? connections = data['connections'] as List<dynamic>?;
     final Map<String, dynamic>? contact = connections?.firstWhere(
-      (dynamic contact) => contact['names'] != null,
+          (dynamic contact) => contact['names'] != null,
       orElse: () => null,
     ) as Map<String, dynamic>?;
     if (contact != null) {
       final Map<String, dynamic>? name = contact['names'].firstWhere(
-        (dynamic name) => name['displayName'] != null,
+            (dynamic name) => name['displayName'] != null,
         orElse: () => null,
       ) as Map<String, dynamic>?;
       if (name != null) {
@@ -176,14 +206,64 @@ class AppContext {
     }
     return null;
   }
+
+
+  void permissionsRequest() {
+    if (!Platform.isLinux && !Platform.isMacOS && !Platform.isWindows) {
+      [
+        Permission.accessMediaLocation,
+        Permission.camera,
+        Permission.audio,
+        Permission.bluetooth,
+        Permission.bluetoothAdvertise,
+        Permission.bluetoothConnect,
+        Permission.bluetoothScan,
+        Permission.location,
+        Permission.ignoreBatteryOptimizations,
+
+        //Permission.accessNotificationPolicy,
+        Permission.notification,
+        Permission.mediaLibrary,
+        Permission.microphone,
+        Permission.manageExternalStorage,
+        Permission.storage,
+        //add more permission to request here.
+      ].request().then((statuses) async {
+        // var isDenied =
+        //     statuses.values.any((p) => (p.isDenied || p.isPermanentlyDenied
+        //         //||
+        //         //p.isLimited ||
+        //         //p.isRestricted
+        //         ));
+        // if (isDenied) {
+        //   for (var pk in statuses.keys) {
+        //     print("${pk}: ${statuses[pk]}");
+        //   }
+        //
+        //   showToast(
+        //       "You have allow access microphone and storage, quiting ...\r\n\r\nIf you see message again and again should re-install application\r\nThen allow permission to access microphone and storage",
+        //       duration: const Duration(seconds: 5),
+        //       textAlign: TextAlign.left);
+        //   await Future.delayed(const Duration(seconds: 5));
+        //   try {
+        //     if (mounted) Navigator.of(context).pop();
+        //   } catch (ex) {}
+        //   try {
+        //     if (mounted) SystemNavigator.pop();
+        //   } catch (ex) {}
+        // }
+      });
+    }
+  }
+
 }
 
-class LogedInfo {
+class UserContext {
   GoogleSignInAccount? GoogleAcc;
 
   Map<String, dynamic>? AccInfo;
 
-  LogedInfo(GoogleSignInAccount? googleAcc, Map<String, dynamic>? info)
+  UserContext(GoogleSignInAccount? googleAcc, Map<String, dynamic>? info)
       : GoogleAcc = googleAcc,
         AccInfo = info {}
 }
