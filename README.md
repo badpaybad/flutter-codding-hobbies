@@ -6,11 +6,16 @@ Check folder "google guider" for how to implement Notification in android with f
                 Init firebase app, google auth, firebase realtimedb
                 
                 NotificationHelper to init notification FCM
-                do you dispatched noti with this
+                do you dispatched noti with this function:
                     _firebaseMessagingBackgroundHandler
 
-                do you on touch to notification here
+                do you on touch, tab, click to notification with this function:  
                 _do_when_use_touch_tab_into_notification_showed
+
+                Handle notification fcm foreground
+
+                 NotificationHelper.instance.onForgroundNotification((msg) async {})
+                  
 
 # Local data with hive 
 
