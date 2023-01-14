@@ -60,13 +60,13 @@ the flow of webrtc
                     -> can click connect to do main flow
 
 
-# ROS https://www.ros.org/
+# ROS 
 
 If you work with ROS1 noetic https://www.ros.org/ 
 
-Many thanks to https://github.com/Sashiri/ros_nodes 
+ROS node client on dart Many thanks to https://github.com/Sashiri/ros_nodes 
 
-You should check RosAppContext for usage of pub sub in ros 
+You should check RosAppContext for usage of pub sub in folder "ros"
                 
                 and in main.dart must call RosAppContext.instance.init
 
