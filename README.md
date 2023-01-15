@@ -5,6 +5,7 @@ Check folder "google guider" for how to implement Notification in android with f
                 AppContext to init data of application
                 Init firebase app, google auth, firebase realtimedb
                 
+                
                 NotificationHelper to init notification FCM
                 do you dispatched noti with this function:
                     _firebaseMessagingBackgroundHandler

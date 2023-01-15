@@ -76,9 +76,9 @@ class _WebRtcP2pVideoStreamPageState extends State<WebRtcP2pVideoStreamPage> {
   final _iceConfiguration = <String, dynamic>{
     //important
     "iceTransportsType": 3,
-    //PeerConnection.IceTransportsType.ALL (NONE,    RELAY,    NOHOST,  ALL)
+    //PeerConnection.IceTransportsType.ALL (NONE:0,    RELAY:1,    NOHOST:2,  ALL:3)
     "keyType": 1,
-    //PeerConnection.KeyType.ECDSA (ECDSA, RSA )
+    //PeerConnection.KeyType.ECDSA (  RSA:0, ECDSA:1,  )
     "iceCandidatePoolSize": 10,
     "iceServers": [
       {
