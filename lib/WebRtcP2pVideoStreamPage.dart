@@ -29,23 +29,18 @@ class WebRtcP2pVideoStreamPage extends StatefulWidget {
 class _WebRtcP2pVideoStreamPageState extends State<WebRtcP2pVideoStreamPage> {
   bool _isOwnerCreatedOffer = false;
   String _localFcmToken = "";
-  RTCPeerConnection? _localPeerConnection;
-
+  String _remoteFcmToken = "";
   List<String> _webRtcRemoteTokens = [];
 
   bool _isWebRtcDataChannelReady = false;
 
+  RTCPeerConnection? _localPeerConnection;
   List<String> _localCandidates = [];
-
-  String _remoteFcmToken = "";
-
   Map<String, String> _candidatesFromRemotes = {};
-
   RTCVideoRenderer? _localVideoRenderer;
-
   RTCVideoRenderer? _remoteVideoRenderer;
-
   MediaStream? _localStream;
+  Map<String, RTCDataChannel> _dataChannels = {};
 
 //https://github.com/yeasin50/Flutter-Video-Calling-App/blob/master/lib/screens/call_page.dart
   final Map<String, dynamic> _mediaConstraints = {
@@ -105,8 +100,6 @@ class _WebRtcP2pVideoStreamPageState extends State<WebRtcP2pVideoStreamPage> {
     _webRtcRemoteTokens =
         allTokens.where((ie) => ie != _localFcmToken).toSet().toList();
   }
-
-  Map<String, RTCDataChannel> _dataChannels = {};
 
   Future<String> _initDataChannel(
       String topic, Future<void> Function(RTCDataChannelMessage?) onMessage,
@@ -293,7 +286,7 @@ class _WebRtcP2pVideoStreamPageState extends State<WebRtcP2pVideoStreamPage> {
         }
 
         if (type == "closed") {
-          await _closePeer();
+          await _closePeerConnection();
         }
 
         print("END----- $_localFcmToken");
@@ -589,7 +582,7 @@ class _WebRtcP2pVideoStreamPageState extends State<WebRtcP2pVideoStreamPage> {
 
   @override
   void dispose() async {
-    await _closePeer();
+    await _closePeerConnection();
     await _signalingSendClosed();
 
     MessageBus.instance.RedisUnsub(
@@ -599,12 +592,15 @@ class _WebRtcP2pVideoStreamPageState extends State<WebRtcP2pVideoStreamPage> {
     super.dispose();
   }
 
-  Future<void> _closePeer() async {
+  Future<void> _closePeerConnection() async {
     if (null != _localPeerConnection) _localPeerConnection!.close();
     if (null != _localVideoRenderer) _localVideoRenderer!.dispose();
-    if (null != _remoteVideoRenderer) _localVideoRenderer!.dispose();
+    if (null != _remoteVideoRenderer) _remoteVideoRenderer!.dispose();
     if (null != _localStream) _localStream!.dispose();
 
     _localPeerConnection = null;
+    _localVideoRenderer = null;
+    _remoteVideoRenderer = null;
+    _localStream = null;
   }
 }
