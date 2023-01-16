@@ -122,7 +122,9 @@ class _WebRtcP2pVideoStreamPageState extends State<WebRtcP2pVideoStreamPage> {
 
     RTCDataChannelInit typempsg = RTCDataChannelInit()
       ..negotiated = true
-      ..maxRetransmits = 30;
+      ..maxRetransmits = 30
+      ..id = _dataChannels.length
+      ..binaryType = type;
 
     typempsg.binaryType = type; // "binary" || "text"
 
