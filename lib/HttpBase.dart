@@ -10,7 +10,6 @@ import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 
 class HttpBase {
-
   Map<String, String> _buildHeader({Map<String, String>? headers}) {
     headers ??= <String, String>{};
     headers['Authorization'] = "Bearer ${AppContext.instance.appBearerToken}";
@@ -42,11 +41,11 @@ class HttpBase {
   Future<T?> Post<T>(apiUrl, Object? body,
       {Map<String, String>? headers}) async {
     headers = _buildHeader(headers: headers);
-    headers["Content-type"]="application/json";
-    headers["Accept"]="application/json";
+    headers["Content-type"] = "application/json";
+    headers["Accept"] = "application/json";
     var jsonBody = jsonEncode(body);
     final http.Response response =
-    await http.post(Uri.parse(apiUrl), headers: headers, body: jsonBody);
+        await http.post(Uri.parse(apiUrl), headers: headers, body: jsonBody);
 
     if (response.statusCode != 200) {
       print("ERROR: ${DateTime.now().toIso8601String()} : $apiUrl");
@@ -57,10 +56,13 @@ class HttpBase {
     if (T is String) {
       return response.body as T;
     }
+    try {
+      final T data = jsonDecode(response.body) as T;
 
-    final T data = jsonDecode(response.body) as T;
-
-    return data;
+      return data;
+    } catch (ex) {
+      return response.body as T;
+    }
   }
 
   Future<T?> PostForm<T>(
@@ -105,10 +107,13 @@ class HttpBase {
     if (T is String) {
       return response.stream.bytesToString() as T;
     }
+    try {
+      final T data = jsonDecode(await response.stream.bytesToString()) as T;
 
-    final T data = jsonDecode(await response.stream.bytesToString()) as T;
-
-    return data;
+      return data;
+    } catch (ex) {
+      return response.stream.bytesToString() as T;
+    }
   }
 
   Future<T?> PostFormFilesInBytes<T>(
@@ -143,9 +148,13 @@ class HttpBase {
       return response.stream.bytesToString() as T;
     }
 
-    final T data = jsonDecode(await response.stream.bytesToString()) as T;
+    try {
+      final T data = jsonDecode(await response.stream.bytesToString()) as T;
 
-    return data;
+      return data;
+    } catch (ex) {
+      return response.stream.bytesToString() as T;
+    }
   }
 
   Future<List<int>> _readFileByte(String filePath) async {
