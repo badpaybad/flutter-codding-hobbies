@@ -15,7 +15,11 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:oktoast/oktoast.dart';
 
+import 'WebServerApiMvc.dart';
+
 Future<void> main() async {
+  WebServerApiMvc.instance.start();
+
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await MessageBus.instance.Init();
