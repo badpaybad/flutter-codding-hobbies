@@ -139,13 +139,14 @@ class RosSubscriber<Message extends RosMessage> {
           //print("msgData:2: ${msgData.length} buffor: ${buffor.length}");
           msgData = msgData.sublist(0, size);
           //print("msgData:3: ${msgData.length} buffor: ${buffor.length}");
-          var usedbytes = topic.msg.fromBytes(msgData, offset: 4);
+          var temp = RosTopic<Message>(topic.name);
+          var usedbytes = temp.msg.fromBytes(msgData, offset: 4);
 
           //print("usedbytes: ${usedbytes} size: $size");
 
           assert(usedbytes == size - 4);
 
-          _valueUpdate.add(topic.msg);
+          _valueUpdate.add(temp.msg);
 
           recived -= size;
           size = 0;

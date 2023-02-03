@@ -97,15 +97,12 @@ class RosAppContext extends ChangeNotifier {
     await MessageBus.instance.ensureRedisCommandInit;
 
     _streamToRedis.stream.listen((event) async {
-
-      await MessageBus.instance
-          .RedisEnqueue("coddinghobbies:livestream:image:localstream", {"data":event});
-
-
+      await MessageBus.instance.RedisEnqueue(
+          "coddinghobbies:livestream:image:localstream", {"data": event});
     });
   }
 
-  final _topicScan = RosTopic('/scan', SensorMsgsLaserScan());
+  final _topicScan = RosTopic<SensorMsgsLaserScan>('/scan');
 
   Future<void> _subscribeTopicScan() async {
     var subscriber = await _rosClient!.subscribe(_topicScan);
@@ -118,7 +115,7 @@ class RosAppContext extends ChangeNotifier {
   }
 
   final _topicTestFloat32 =
-      RosTopic('/duflutter/test_SensorMsgsLaserScan', SensorMsgsLaserScan());
+      RosTopic<SensorMsgsLaserScan>('/duflutter/test_SensorMsgsLaserScan');
   RosPublisher? _cmd_topicTestFloat32;
 
   Future<void> _registerTopic_duflutter_test_topicTestFloat32() async {
@@ -161,7 +158,7 @@ class RosAppContext extends ChangeNotifier {
     // });
   }
 
-  final _topicTestString = RosTopic('/duflutter/test', StdMsgsString());
+  final _topicTestString = RosTopic<StdMsgsString>('/duflutter/test');
   RosPublisher? _cmdTestTopicString;
 
   Future<void> _registerTopic_duflutter_test() async {
@@ -214,12 +211,12 @@ class RosAppContext extends ChangeNotifier {
 
   RosClient? _rosClient;
 
-  final _visionTopic =
-      RosTopic('/coddinghobbies/cameraimagecompressed', SensorMsgsCompressedImage());
+  final _visionTopic = RosTopic<SensorMsgsCompressedImage>(
+      '/coddinghobbies/cameraimagecompressed');
 
-  final _mapTopic = RosTopic('map', NavMsgsOccupancyGrid());
+  final _mapTopic = RosTopic<NavMsgsOccupancyGrid>('map');
 
-  final _veliocityTopic = RosTopic('cmd_vel', GeometryMsgsTwist());
+  final _veliocityTopic = RosTopic<GeometryMsgsTwist>('cmd_vel');
 
   void _mapUpdate(ui.Image val) {
     _mapImage = val;
