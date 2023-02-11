@@ -89,7 +89,7 @@ class RosSubscriber<Message extends RosMessage> {
     return header;
   }
 
-  Future<Socket> establishTCPROSConnection(ProtocolInfo protocolInfo) async {
+  Future<Socket?> establishTCPROSConnection(ProtocolInfo protocolInfo) async {
     var socket =
         await Socket.connect(protocolInfo.params[0], protocolInfo.params[1]);
 
@@ -152,10 +152,9 @@ class RosSubscriber<Message extends RosMessage> {
           size = 0;
         } catch (ex) {
           //sleep(Duration(seconds: 10));
-          //print("ros_subscriber.establishTCPROSConnection.loop: $ex");
-          //rethrow;
+          print("ros_subscriber.establishTCPROSConnection.loop: $ex");
+          rethrow;
           //exit loop do not block other thread to run
-          break;
         }
         //print("AFTER received: $recived size: $size buffor: ${buffor.length}");
       }
@@ -239,10 +238,23 @@ class RosSubscriber<Message extends RosMessage> {
         ProtocolInfo(response[2][0], (response[2] as List<dynamic>).sublist(1));
 
     Socket? socket;
-    switch (protocol.name) {
-      case 'TCPROS':
-        socket = await establishTCPROSConnection(protocol);
-        break;
+    var counterRetry = 0;
+    while (socket == null) {
+      try {
+        switch (protocol.name) {
+          case 'TCPROS':
+            socket = await establishTCPROSConnection(protocol);
+            break;
+        }
+        counterRetry++;
+        if (socket == null) {
+          await Future.delayed(const Duration(seconds: 5));
+
+          if (counterRetry > 3) {
+            break;
+          }
+        }
+      } catch (ex) {}
     }
 
     if (socket == null) {
