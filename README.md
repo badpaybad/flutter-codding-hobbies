@@ -28,6 +28,10 @@ Check file HttpBase
 
 # webrtc p2p 
 
+You can run and connect by use this widget WebRtcP2pVideoStreamPage.dart in source. 
+
+Webrtc ref: core: https://github.com/flutter-webrtc/flutter-webrtc sample: https://github.com/flutter-webrtc/flutter-webrtc-demo
+
 ### redis as signaling 
 
 You can change to any push server or firebasedb, firestore
